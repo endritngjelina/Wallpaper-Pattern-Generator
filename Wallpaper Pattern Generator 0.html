@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Studio - Professional Wallpaper Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .preview-area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-group h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .control-row label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-width: 80px;
+            color: #555;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        select, input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="number"]:focus {
+            border-color: #667eea;
+        }
+
+        .pattern-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pattern-type {
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .pattern-type:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+
+        .pattern-type.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .canvas-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        #patternCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: white;
+        }
+
+        .export-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+
+        .size-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .size-preset {
+            padding: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .size-preset:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .color-swatch:hover {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .animation-controls {
+            display: none;
+        }
+
+        .animation-controls.active {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .controls-panel {
+                position: static;
+                max-height: none;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pattern Studio</h1>
+            <p>Professional Wallpaper & Pattern Generator</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>Pattern Type</h3>
+                    <div class="pattern-types">
+                        <div class="pattern-type active" data-type="geometric">Geometric</div>
+                        <div class="pattern-type" data-type="organic">Organic</div>
+                        <div class="pattern-type" data-type="icons">Icons</div>
+                        <div class="pattern-type" data-type="doodles">Doodles</div>
+                        <div class="pattern-type" data-type="mandala">Mandala</div>
+                        <div class="pattern-type" data-type="noise">Noise</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Colors</h3>
+                    <div class="control-row">
+                        <label>Primary:</label>
+                        <input type="color" id="primaryColor" value="#667eea">
+                    </div>
+                    <div class="control-row">
+                        <label>Secondary:</label>
+                        <input type="color" id="secondaryColor" value="#764ba2">
+                    </div>
+                    <div class="control-row">
+                        <label>Background:</label>
+                        <input type="color" id="backgroundColor" value="#ffffff">
+                    </div>
+                    <div class="color-palette">
+                        <div class="color-swatch" style="background: #ff6b6b;" data-colors="#ff6b6b,#ee5a52,#ffffff"></div>
+                        <div class="color-swatch" style="background: #4ecdc4;" data-colors="#4ecdc4,#44a08d,#ffffff"></div>
+                        <div class="color-swatch" style="background: #45b7d1;" data-colors="#45b7d1,#96c93d,#ffffff"></div>
+                        <div class="color-swatch" style="background: #f9ca24;" data-colors="#f9ca24,#f0932b,#ffffff"></div>
+                        <div class="color-swatch" style="background: #6c5ce7;" data-colors="#6c5ce7,#a29bfe,#ffffff"></div>
+                        <div class="color-swatch" style="background: #fd79a8;" data-colors="#fd79a8,#e84393,#ffffff"></div>
+                        <div class="color-swatch" style="background: #00b894;" data-colors="#00b894,#00cec9,#ffffff"></div>
+                        <div class="color-swatch" style="background: #e17055;" data-colors="#e17055,#d63031,#ffffff"></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Pattern Settings</h3>
+                    <div class="control-row">
+                        <label>Scale:</label>
+                        <input type="range" id="patternScale" min="10" max="200" value="50">
+                        <span id="scaleValue">50</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Density:</label>
+                        <input type="range" id="patternDensity" min="1" max="20" value="8">
+                        <span id="densityValue">8</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Rotation:</label>
+                        <input type="range" id="patternRotation" min="0" max="360" value="0">
+                        <span id="rotationValue">0°</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Opacity:</label>
+                        <input type="range" id="patternOpacity" min="10" max="100" value="100">
+                        <span id="opacityValue">100%</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Canvas Size</h3>
+                    <div class="control-row">
+                        <label>Width:</label>
+                        <input type="number" id="canvasWidth" value="800" min="100" max="2000">
+                    </div>
+                    <div class="control-row">
+                        <label>Height:</label>
+                        <input type="number" id="canvasHeight" value="600" min="100" max="2000">
+                    </div>
+                    <div class="size-presets">
+                        <div class="size-preset" data-size="800,600">800×600</div>
+                        <div class="size-preset" data-size="1920,1080">1920×1080</div>
+                        <div class="size-preset" data-size="1024,1024">1024×1024</div>
+                        <div class="size-preset" data-size="512,512">Tile 512</div>
+                        <div class="size-preset" data-size="256,256">Tile 256</div>
+                        <div class="size-preset" data-size="128,128">Tile 128</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Export</h3>
+                    <div class="export-controls">
+                        <button class="btn btn-primary" id="downloadBtn">Download PNG</button>
+                        <button class="btn btn-secondary" id="randomizeBtn">Randomize</button>
+                    </div>
+                    <div class="control-row" style="margin-top: 15px;">
+                        <label>
+                            <input type="checkbox" id="seamlessMode" checked> Seamless Pattern
+                        </label>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <strong>Professional Tips:</strong><br>
+                    • Use seamless mode for wallpapers<br>
+                    • Square tiles work best for UI patterns<br>
+                    • Higher density for detailed patterns<br>
+                    • Lower opacity for subtle backgrounds
+                </div>
+            </div>
+
+            <div class="preview-area">
+                <div class="canvas-container">
+                    <canvas id="patternCanvas" width="800" height="600"></canvas>
+                </div>
+                
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Generating pattern...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PatternGenerator {
+            constructor() {
+                this.canvas = document.getElementById('patternCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentPattern = 'geometric';
+                this.animationId = null;
+                
+                this.settings = {
+                    primaryColor: '#667eea',
+                    secondaryColor: '#764ba2',
+                    backgroundColor: '#ffffff',
+                    scale: 50,
+                    density: 8,
+                    rotation: 0,
+                    opacity: 100,
+                    seamless: true
+                };
+
+                this.initializeControls();
+                this.generatePattern();
+            }
+
+            initializeControls() {
+                // Pattern type selection
+                document.querySelectorAll('.pattern-type').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.pattern-type').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentPattern = e.target.dataset.type;
+                        this.generatePattern();
+                    });
+                });
+
+                // Color controls
+                document.getElementById('primaryColor').addEventListener('input', (e) => {
+                    this.settings.primaryColor = e.target.value;
+                    this.generatePattern();
+                });
+
+                document.getElementById('secondaryColor').addEventListener('input', (e) => {
+                    this.settings.secondaryColor = e.target.value;
+                    this.generatePattern();
+                });
+
+                document.getElementById('backgroundColor').addEventListener('input', (e) => {
+                    this.settings.backgroundColor = e.target.value;
+                    this.generatePattern();
+                });
+
+                // Color palette swatches
+                document.querySelectorAll('.color-swatch').forEach(swatch => {
+                    swatch.addEventListener('click', (e) => {
+                        const colors = e.target.dataset.colors.split(',');
+                        document.getElementById('primaryColor').value = colors[0];
+                        document.getElementById('secondaryColor').value = colors[1];
+                        document.getElementById('backgroundColor').value = colors[2];
+                        this.settings.primaryColor = colors[0];
+                        this.settings.secondaryColor = colors[1];
+                        this.settings.backgroundColor = colors[2];
+                        this.generatePattern();
+                    });
+                });
+
+                // Range controls
+                this.setupRangeControl('patternScale', 'scaleValue', 'scale');
+                this.setupRangeControl('patternDensity', 'densityValue', 'density');
+                this.setupRangeControl('patternRotation', 'rotationValue', 'rotation', '°');
+                this.setupRangeControl('patternOpacity', 'opacityValue', 'opacity', '%');
+
+                // Canvas size controls
+                document.getElementById('canvasWidth').addEventListener('input', () => this.updateCanvasSize());
+                document.getElementById('canvasHeight').addEventListener('input', () => this.updateCanvasSize());
+
+                // Size presets
+                document.querySelectorAll('.size-preset').forEach(preset => {
+                    preset.addEventListener('click', (e) => {
+                        const [width, height] = e.target.dataset.size.split(',');
+                        document.getElementById('canvasWidth').value = width;
+                        document.getElementById('canvasHeight').value = height;
+                        this.updateCanvasSize();
+                    });
+                });
+
+                // Seamless mode
+                document.getElementById('seamlessMode').addEventListener('change', (e) => {
+                    this.settings.seamless = e.target.checked;
+                    this.generatePattern();
+                });
+
+                // Export and randomize buttons
+                document.getElementById('downloadBtn').addEventListener('click', () => this.downloadPattern());
+                document.getElementById('randomizeBtn').addEventListener('click', () => this.randomizePattern());
+            }
+
+            setupRangeControl(rangeId, valueId, setting, suffix = '') {
+                const range = document.getElementById(rangeId);
+                const value = document.getElementById(valueId);
+                
+                range.addEventListener('input', (e) => {
+                    const val = parseInt(e.target.value);
+                    this.settings[setting] = val;
+                    value.textContent = val + suffix;
+                    this.generatePattern();
+                });
+            }
+
+            updateCanvasSize() {
+                const width = parseInt(document.getElementById('canvasWidth').value);
+                const height = parseInt(document.getElementById('canvasHeight').value);
+                
+                this.canvas.width = width;
+                this.canvas.height = height;
+                this.generatePattern();
+            }
+
+            generatePattern() {
+                this.ctx.fillStyle = this.settings.backgroundColor;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.ctx.globalAlpha = this.settings.opacity / 100;
+
+                switch(this.currentPattern) {
+                    case 'geometric':
+                        this.drawGeometricPattern();
+                        break;
+                    case 'organic':
+                        this.drawOrganicPattern();
+                        break;
+                    case 'icons':
+                        this.drawIconPattern();
+                        break;
+                    case 'doodles':
+                        this.drawDoodlePattern();
+                        break;
+                    case 'mandala':
+                        this.drawMandalaPattern();
+                        break;
+                    case 'noise':
+                        this.drawNoisePattern();
+                        break;
+                }
+
+                this.ctx.globalAlpha = 1;
+            }
+
+            drawGeometricPattern() {
+                const size = this.settings.scale;
+                const spacing = size * (20 / this.settings.density);
+                
+                for(let x = 0; x < this.canvas.width + spacing; x += spacing) {
+                    for(let y = 0; y < this.canvas.height + spacing; y += spacing) {
+                        this.ctx.save();
+                        this.ctx.translate(x, y);
+                        this.ctx.rotate((this.settings.rotation * Math.PI) / 180);
+                        
+                        // Draw various geometric shapes
+                        const shapeType = Math.floor(Math.random() * 4);
+                        switch(shapeType) {
+                            case 0:
+                                this.drawTriangle(0, 0, size);
+                                break;
+                            case 1:
+                                this.drawHexagon(0, 0, size);
+                                break;
+                            case 2:
+                                this.drawCircle(0, 0, size);
+                                break;
+                            case 3:
+                                this.drawSquare(0, 0, size);
+                                break;
+                        }
+                        this.ctx.restore();
+                    }
+                }
+            }
+
+            drawOrganicPattern() {
+                const size = this.settings.scale;
+                const spacing = size * (15 / this.settings.density);
+                
+                for(let x = 0; x < this.canvas.width + spacing; x += spacing) {
+                    for(let y = 0; y < this.canvas.height + spacing; y += spacing) {
+                        this.ctx.save();
+                        this.ctx.translate(x + Math.random() * 20 - 10, y + Math.random() * 20 - 10);
+                        
+                        // Draw organic shapes
+                        const shapeType = Math.floor(Math.random() * 3);
+                        switch(shapeType) {
+                            case 0:
+                                this.drawLeaf(0, 0, size);
+                                break;
+                            case 1:
+                                this.drawFlower(0, 0, size);
+                                break;
+                            case 2:
+                                this.drawBlob(0, 0, size);
+                                break;
+                        }
+                        this.ctx.restore();
+                    }
+                }
+            }
+
+            drawIconPattern() {
+                const size = this.settings.scale;
+                const spacing = size * (25 / this.settings.density);
+                const icons = ['★', '♦', '♠', '♣', '♥', '●', '▲', '■'];
+                
+                this.ctx.font = `${size}px Arial`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                
+                for(let x = spacing/2; x < this.canvas.width; x += spacing) {
+                    for(let y = spacing/2; y < this.canvas.height; y += spacing) {
+                        const icon = icons[Math.floor(Math.random() * icons.length)];
+                        const color = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                        
+                        this.ctx.fillStyle = color;
+                        this.ctx.save();
+                        this.ctx.translate(x, y);
+                        this.ctx.rotate((this.settings.rotation * Math.PI) / 180);
+                        this.ctx.fillText(icon, 0, 0);
+                        this.ctx.restore();
+                    }
+                }
+            }
+
+            drawDoodlePattern() {
+                const size = this.settings.scale;
+                const spacing = size * (20 / this.settings.density);
+                
+                for(let x = 0; x < this.canvas.width + spacing; x += spacing) {
+                    for(let y = 0; y < this.canvas.height + spacing; y += spacing) {
+                        this.ctx.save();
+                        this.ctx.translate(x, y);
+                        this.ctx.rotate((this.settings.rotation * Math.PI) / 180);
+                        
+                        const doodleType = Math.floor(Math.random() * 4);
+                        switch(doodleType) {
+                            case 0:
+                                this.drawSpiral(0, 0, size);
+                                break;
+                            case 1:
+                                this.drawZigzag(0, 0, size);
+                                break;
+                            case 2:
+                                this.drawScribble(0, 0, size);
+                                break;
+                            case 3:
+                                this.drawDots(0, 0, size);
+                                break;
+                        }
+                        this.ctx.restore();
+                    }
+                }
+            }
+
+            drawMandalaPattern() {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = this.settings.scale * 2;
+                const petals = this.settings.density;
+                
+                this.ctx.save();
+                this.ctx.translate(centerX, centerY);
+                this.ctx.rotate((this.settings.rotation * Math.PI) / 180);
+                
+                for(let i = 0; i < petals; i++) {
+                    const angle = (i / petals) * Math.PI * 2;
+                    this.ctx.save();
+                    this.ctx.rotate(angle);
+                    
+                    // Draw mandala petals
+                    this.ctx.fillStyle = i % 2 === 0 ? this.settings.primaryColor : this.settings.secondaryColor;
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(0, -radius/2, radius/4, radius/2, 0, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.restore();
+                }
+                
+                // Center circle
+                this.ctx.fillStyle = this.settings.primaryColor;
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, radius/4, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.restore();
+            }
+
+            drawNoisePattern() {
+                const imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+                const data = imageData.data;
+                
+                const primaryRGB = this.hexToRgb(this.settings.primaryColor);
+                const secondaryRGB = this.hexToRgb(this.settings.secondaryColor);
+                const backgroundRGB = this.hexToRgb(this.settings.backgroundColor);
+                
+                for(let i = 0; i < data.length; i += 4) {
+                    const noise = Math.random();
+                    const threshold = this.settings.density / 20;
+                    
+                    let color;
+                    if(noise < threshold) {
+                        color = primaryRGB;
+                    } else if(noise < threshold * 2) {
+                        color = secondaryRGB;
+                    } else {
+                        color = backgroundRGB;
+                    }
+                    
+                    data[i] = color.r;
+                    data[i + 1] = color.g;
+                    data[i + 2] = color.b;
+                    data[i + 3] = 255;
+                }
+                
+                this.ctx.putImageData(imageData, 0, 0);
+            }
+
+            // Helper drawing functions
+            drawTriangle(x, y, size) {
+                this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size/2);
+                this.ctx.lineTo(x - size/2, y + size/2);
+                this.ctx.lineTo(x + size/2, y + size/2);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawHexagon(x, y, size) {
+                this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.beginPath();
+                for(let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const px = x + Math.cos(angle) * size/2;
+                    const py = y + Math.sin(angle) * size/2;
+                    if(i === 0) this.ctx.moveTo(px, py);
+                    else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawCircle(x, y, size) {
+                this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, size/2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            drawSquare(x, y, size) {
+                this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.fillRect(x - size/2, y - size/2, size, size);
+            }
+
+            drawLeaf(x, y, size) {
+                this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.beginPath();
+                this.ctx.ellipse(x, y, size/3, size/2, Math.PI/4, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            drawFlower(x, y, size) {
+                const petals = 5;
+                for(let i = 0; i < petals; i++) {
+                    const angle = (i / petals) * Math.PI * 2;
+                    const petalX = x + Math.cos(angle) * size/4;
+                    const petalY = y + Math.sin(angle) * size/4;
+                    
+                    this.ctx.fillStyle = this.settings.secondaryColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(petalX, petalY, size/6, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // Center
+                this.ctx.fillStyle = this.settings.primaryColor;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, size/8, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            drawBlob(x, y, size) {
+                this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.beginPath();
+                const points = 8;
+                for(let i = 0; i < points; i++) {
+                    const angle = (i / points) * Math.PI * 2;
+                    const radius = size/2 + Math.random() * size/4;
+                    const px = x + Math.cos(angle) * radius;
+                    const py = y + Math.sin(angle) * radius;
+                    if(i === 0) this.ctx.moveTo(px, py);
+                    else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawSpiral(x, y, size) {
+                this.ctx.strokeStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                
+                let radius = 0;
+                let angle = 0;
+                const maxRadius = size/2;
+                
+                this.ctx.moveTo(x, y);
+                while(radius < maxRadius) {
+                    radius += 0.5;
+                    angle += 0.1;
+                    const px = x + Math.cos(angle) * radius;
+                    const py = y + Math.sin(angle) * radius;
+                    this.ctx.lineTo(px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawZigzag(x, y, size) {
+                this.ctx.strokeStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                
+                const segments = 6;
+                this.ctx.moveTo(x - size/2, y);
+                for(let i = 1; i <= segments; i++) {
+                    const px = x - size/2 + (i * size/segments);
+                    const py = y + (i % 2 === 0 ? -size/4 : size/4);
+                    this.ctx.lineTo(px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawScribble(x, y, size) {
+                this.ctx.strokeStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                
+                const points = 10;
+                this.ctx.moveTo(x + Math.random() * size - size/2, y + Math.random() * size - size/2);
+                for(let i = 0; i < points; i++) {
+                    const px = x + Math.random() * size - size/2;
+                    const py = y + Math.random() * size - size/2;
+                    this.ctx.lineTo(px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawDots(x, y, size) {
+                const dots = 5;
+                for(let i = 0; i < dots; i++) {
+                    const dotX = x + Math.random() * size - size/2;
+                    const dotY = y + Math.random() * size - size/2;
+                    const dotSize = Math.random() * 4 + 2;
+                    
+                    this.ctx.fillStyle = Math.random() > 0.5 ? this.settings.primaryColor : this.settings.secondaryColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(dotX, dotY, dotSize, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+
+            hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            }
+
+            randomizePattern() {
+                // Randomize colors
+                this.settings.primaryColor = this.getRandomColor();
+                this.settings.secondaryColor = this.getRandomColor();
+                this.settings.backgroundColor = Math.random() > 0.7 ? this.getRandomColor() : '#ffffff';
+                
+                // Randomize settings
+                this.settings.scale = Math.floor(Math.random() * 150) + 25;
+                this.settings.density = Math.floor(Math.random() * 15) + 3;
+                this.settings.rotation = Math.floor(Math.random() * 360);
+                this.settings.opacity = Math.floor(Math.random() * 70) + 30;
+                
+                // Update UI
+                document.getElementById('primaryColor').value = this.settings.primaryColor;
+                document.getElementById('secondaryColor').value = this.settings.secondaryColor;
+                document.getElementById('backgroundColor').value = this.settings.backgroundColor;
+                document.getElementById('patternScale').value = this.settings.scale;
+                document.getElementById('patternDensity').value = this.settings.density;
+                document.getElementById('patternRotation').value = this.settings.rotation;
+                document.getElementById('patternOpacity').value = this.settings.opacity;
+                
+                document.getElementById('scaleValue').textContent = this.settings.scale;
+                document.getElementById('densityValue').textContent = this.settings.density;
+                document.getElementById('rotationValue').textContent = this.settings.rotation + '°';
+                document.getElementById('opacityValue').textContent = this.settings.opacity + '%';
+                
+                // Randomize pattern type
+                const patterns = ['geometric', 'organic', 'icons', 'doodles', 'mandala', 'noise'];
+                const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                
+                document.querySelectorAll('.pattern-type').forEach(btn => {
+                    btn.classList.remove('active');
+                    if(btn.dataset.type === randomPattern) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                this.currentPattern = randomPattern;
+                this.generatePattern();
+            }
+
+            getRandomColor() {
+                const colors = [
+                    '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7',
+                    '#fd79a8', '#00b894', '#e17055', '#a29bfe', '#fd8fb2',
+                    '#55a3ff', '#26de81', '#ff9ff3', '#feca57', '#48dbfb',
+                    '#ff6348', '#7bed9f', '#70a1ff', '#5f27cd', '#00d2d3'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            downloadPattern() {
+                const link = document.createElement('a');
+                link.download = `pattern-${this.currentPattern}-${Date.now()}.png`;
+                link.href = this.canvas.toDataURL();
+                link.click();
+            }
+
+            // Advanced pattern generation for seamless tiling
+            generateSeamlessPattern() {
+                if(!this.settings.seamless) {
+                    this.generatePattern();
+                    return;
+                }
+
+                // Create a temporary canvas for seamless pattern generation
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = this.canvas.width;
+                tempCanvas.height = this.canvas.height;
+
+                // Generate base pattern
+                const originalCtx = this.ctx;
+                this.ctx = tempCtx;
+                this.generatePattern();
+                this.ctx = originalCtx;
+
+                // Apply seamless tiling algorithm
+                this.applySeamlessTiling(tempCanvas);
+            }
+
+            applySeamlessTiling(sourceCanvas) {
+                const sourceCtx = sourceCanvas.getContext('2d');
+                const imageData = sourceCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+                
+                // Create seamless edges by blending opposite edges
+                this.blendEdges(imageData);
+                
+                this.ctx.putImageData(imageData, 0, 0);
+            }
+
+            blendEdges(imageData) {
+                const { width, height, data } = imageData;
+                const blendWidth = Math.min(width, height) * 0.1; // 10% blend zone
+                
+                // Blend top-bottom edges
+                for(let x = 0; x < width; x++) {
+                    for(let y = 0; y < blendWidth; y++) {
+                        const topIdx = (y * width + x) * 4;
+                        const bottomIdx = ((height - 1 - y) * width + x) * 4;
+                        const alpha = y / blendWidth;
+                        
+                        for(let c = 0; c < 3; c++) {
+                            const blended = data[topIdx + c] * (1 - alpha) + data[bottomIdx + c] * alpha;
+                            data[topIdx + c] = blended;
+                            data[bottomIdx + c] = blended;
+                        }
+                    }
+                }
+                
+                // Blend left-right edges
+                for(let y = 0; y < height; y++) {
+                    for(let x = 0; x < blendWidth; x++) {
+                        const leftIdx = (y * width + x) * 4;
+                        const rightIdx = (y * width + (width - 1 - x)) * 4;
+                        const alpha = x / blendWidth;
+                        
+                        for(let c = 0; c < 3; c++) {
+                            const blended = data[leftIdx + c] * (1 - alpha) + data[rightIdx + c] * alpha;
+                            data[leftIdx + c] = blended;
+                            data[rightIdx + c] = blended;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Initialize the pattern generator when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PatternGenerator();
+        });
+
+        // Add some professional touches
+        document.addEventListener('keydown', (e) => {
+            if(e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('randomizeBtn').click();
+            }
+            if(e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('downloadBtn').click();
+            }
+        });
+
+        // Add loading states for better UX
+        function showLoading() {
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.canvas-container').style.opacity = '0.5';
+        }
+
+        function hideLoading() {
+            document.querySelector('.loading').style.display = 'none';
+            document.querySelector('.canvas-container').style.opacity = '1';
+        }
+
+        // Performance optimization - debounce rapid changes
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>
