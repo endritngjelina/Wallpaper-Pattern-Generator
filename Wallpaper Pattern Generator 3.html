@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper Pattern Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            min-height: 100vh;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .preview-area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #444;
+            font-size: 14px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #e1e5e9;
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="color"] {
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid #e1e5e9;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .pattern-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pattern-type {
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .pattern-type.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .canvas-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+
+        #patternCanvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .advanced-controls {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .advanced-controls h3 {
+            margin-bottom: 15px;
+            color: #444;
+            font-size: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e1e5e9;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .preset-patterns {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .controls {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>Pattern Generator</h1>
+            
+            <div class="control-group">
+                <label>Pattern Type</label>
+                <div class="pattern-types">
+                    <div class="pattern-type active" data-type="geometric">Geometric</div>
+                    <div class="pattern-type" data-type="organic">Organic</div>
+                    <div class="pattern-type" data-type="doodles">Doodles</div>
+                    <div class="pattern-type" data-type="icons">Icons</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Preset Patterns</label>
+                <div class="preset-patterns">
+                    <button class="preset-btn" data-preset="hexagons">Hexagons</button>
+                    <button class="preset-btn" data-preset="circles">Circles</button>
+                    <button class="preset-btn" data-preset="triangles">Triangles</button>
+                    <button class="preset-btn" data-preset="waves">Waves</button>
+                    <button class="preset-btn" data-preset="flowers">Flowers</button>
+                    <button class="preset-btn" data-preset="stars">Stars</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Canvas Size</label>
+                <select id="canvasSize">
+                    <option value="256">256x256 (Small)</option>
+                    <option value="512" selected>512x512 (Medium)</option>
+                    <option value="1024">1024x1024 (Large)</option>
+                    <option value="2048">2048x2048 (XL)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Pattern Density: <span id="densityValue">50</span></label>
+                <input type="range" id="density" min="10" max="100" value="50">
+            </div>
+
+            <div class="control-group">
+                <label>Scale: <span id="scaleValue">1.0</span></label>
+                <input type="range" id="scale" min="0.5" max="3.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+                <label>Rotation: <span id="rotationValue">0°</span></label>
+                <input type="range" id="rotation" min="0" max="360" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>Primary Color</label>
+                <input type="color" id="primaryColor" value="#667eea">
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #667eea" data-color="#667eea"></div>
+                    <div class="color-swatch" style="background: #764ba2" data-color="#764ba2"></div>
+                    <div class="color-swatch" style="background: #f093fb" data-color="#f093fb"></div>
+                    <div class="color-swatch" style="background: #43e97b" data-color="#43e97b"></div>
+                    <div class="color-swatch" style="background: #fa709a" data-color="#fa709a"></div>
+                    <div class="color-swatch" style="background: #fee140" data-color="#fee140"></div>
+                    <div class="color-swatch" style="background: #43cbff" data-color="#43cbff"></div>
+                    <div class="color-swatch" style="background: #9708cc" data-color="#9708cc"></div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Secondary Color</label>
+                <input type="color" id="secondaryColor" value="#764ba2">
+            </div>
+
+            <div class="control-group">
+                <label>Background Color</label>
+                <input type="color" id="backgroundColor" value="#ffffff">
+            </div>
+
+            <div class="advanced-controls">
+                <h3>Advanced Options</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="gradient" checked>
+                    <label for="gradient">Use Gradient</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="shadow">
+                    <label for="shadow">Drop Shadow</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="outline">
+                    <label for="outline">Outline</label>
+                </div>
+                <div class="control-group">
+                    <label>Opacity: <span id="opacityValue">100%</span></label>
+                    <input type="range" id="opacity" min="10" max="100" value="100">
+                </div>
+            </div>
+
+            <button id="generateBtn">Generate Pattern</button>
+            <button id="randomizeBtn">Randomize All</button>
+            
+            <div class="export-options">
+                <button id="exportPNG">Export PNG</button>
+                <button id="exportSVG">Export SVG</button>
+            </div>
+        </div>
+
+        <div class="preview-area">
+            <div class="canvas-container">
+                <canvas id="patternCanvas" width="512" height="512"></canvas>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>Generating...</div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-value" id="elementCount">0</span>
+                    <span class="stat-label">Elements</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="patternSize">512px</span>
+                    <span class="stat-label">Size</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="fileSize">~0KB</span>
+                    <span class="stat-label">Est. Size</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PatternGenerator {
+            constructor() {
+                this.canvas = document.getElementById('patternCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentPattern = 'geometric';
+                this.animationId = null;
+                this.patterns = [];
+                
+                this.initializeEventListeners();
+                this.generatePattern();
+            }
+
+            initializeEventListeners() {
+                // Pattern type selection
+                document.querySelectorAll('.pattern-type').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.pattern-type').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentPattern = e.target.dataset.type;
+                        this.generatePattern();
+                    });
+                });
+
+                // Preset patterns
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.loadPreset(e.target.dataset.preset);
+                    });
+                });
+
+                // Range inputs with live updates
+                ['density', 'scale', 'rotation', 'opacity'].forEach(id => {
+                    const input = document.getElementById(id);
+                    const valueSpan = document.getElementById(id + 'Value');
+                    
+                    input.addEventListener('input', (e) => {
+                        let value = e.target.value;
+                        if (id === 'scale') value += 'x';
+                        else if (id === 'rotation') value += '°';
+                        else if (id === 'opacity') value += '%';
+                        
+                        valueSpan.textContent = value;
+                        this.generatePattern();
+                    });
+                });
+
+                // Color inputs
+                ['primaryColor', 'secondaryColor', 'backgroundColor'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => {
+                        this.generatePattern();
+                    });
+                });
+
+                // Canvas size
+                document.getElementById('canvasSize').addEventListener('change', (e) => {
+                    const size = parseInt(e.target.value);
+                    this.canvas.width = size;
+                    this.canvas.height = size;
+                    document.getElementById('patternSize').textContent = size + 'px';
+                    this.generatePattern();
+                });
+
+                // Color palette
+                document.querySelectorAll('.color-swatch').forEach(swatch => {
+                    swatch.addEventListener('click', (e) => {
+                        document.getElementById('primaryColor').value = e.target.dataset.color;
+                        this.generatePattern();
+                    });
+                });
+
+                // Checkboxes
+                ['gradient', 'shadow', 'outline'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => {
+                        this.generatePattern();
+                    });
+                });
+
+                // Buttons
+                document.getElementById('generateBtn').addEventListener('click', () => {
+                    this.generatePattern();
+                });
+
+                document.getElementById('randomizeBtn').addEventListener('click', () => {
+                    this.randomizeSettings();
+                });
+
+                document.getElementById('exportPNG').addEventListener('click', () => {
+                    this.exportPNG();
+                });
+
+                document.getElementById('exportSVG').addEventListener('click', () => {
+                    this.exportSVG();
+                });
+            }
+
+            async generatePattern() {
+                this.showLoading(true);
+                
+                // Small delay to show loading animation
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.patterns = [];
+                
+                // Set background
+                const bgColor = document.getElementById('backgroundColor').value;
+                this.ctx.fillStyle = bgColor;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const density = parseInt(document.getElementById('density').value);
+                const scale = parseFloat(document.getElementById('scale').value);
+                const rotation = parseInt(document.getElementById('rotation').value);
+                
+                switch(this.currentPattern) {
+                    case 'geometric':
+                        this.generateGeometric(density, scale, rotation);
+                        break;
+                    case 'organic':
+                        this.generateOrganic(density, scale, rotation);
+                        break;
+                    case 'doodles':
+                        this.generateDoodles(density, scale, rotation);
+                        break;
+                    case 'icons':
+                        this.generateIcons(density, scale, rotation);
+                        break;
+                }
+                
+                this.updateStats();
+                this.showLoading(false);
+            }
+
+            generateGeometric(density, scale, rotation) {
+                const size = Math.max(10, 40 * scale);
+                const spacing = Math.max(size * 1.2, this.canvas.width / (density / 10));
+                const primaryColor = document.getElementById('primaryColor').value;
+                const secondaryColor = document.getElementById('secondaryColor').value;
+                const useGradient = document.getElementById('gradient').checked;
+                const useShadow = document.getElementById('shadow').checked;
+                const useOutline = document.getElementById('outline').checked;
+                const opacity = parseInt(document.getElementById('opacity').value) / 100;
+                
+                let elementCount = 0;
+                
+                for (let x = 0; x < this.canvas.width + size; x += spacing) {
+                    for (let y = 0; y < this.canvas.height + size; y += spacing) {
+                        this.ctx.save();
+                        this.ctx.globalAlpha = opacity;
+                        this.ctx.translate(x, y);
+                        this.ctx.rotate((rotation * Math.PI) / 180);
+                        
+                        if (useShadow) {
+                            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                            this.ctx.shadowBlur = 10;
+                            this.ctx.shadowOffsetX = 3;
+                            this.ctx.shadowOffsetY = 3;
+                        }
+                        
+                        if (useGradient) {
+                            const gradient = this.ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
+                            gradient.addColorStop(0, primaryColor);
+                            gradient.addColorStop(1, secondaryColor);
+                            this.ctx.fillStyle = gradient;
+                        } else {
+                            this.ctx.fillStyle = primaryColor;
+                        }
+                        
+                        // Draw different geometric shapes randomly
+                        const shapeType = Math.floor(Math.random() * 4);
+                        switch(shapeType) {
+                            case 0: // Rectangle
+                                this.ctx.fillRect(-size/2, -size/2, size, size);
+                                break;
+                            case 1: // Circle
+                                this.ctx.beginPath();
+                                this.ctx.arc(0, 0, size/2, 0, Math.PI * 2);
+                                this.ctx.fill();
+                                break;
+                            case 2: // Triangle
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(0, -size/2);
+                                this.ctx.lineTo(-size/2, size/2);
+                                this.ctx.lineTo(size/2, size/2);
+                                this.ctx.closePath();
+                                this.ctx.fill();
+                                break;
+                            case 3: // Hexagon
+                                this.drawHexagon(0, 0, size/2);
+                                this.ctx.fill();
+                                break;
+                        }
+                        
+                        if (useOutline) {
+                            this.ctx.strokeStyle = secondaryColor;
+                            this.ctx.lineWidth = 2;
+                            this.ctx.stroke();
+                        }
+                        
+                        this.ctx.restore();
+                        elementCount++;
+                    }
+                }
+                
+                this.patterns.push({ type: 'geometric', count: elementCount });
+            }
+
+            generateOrganic(density, scale, rotation) {
+                const primaryColor = document.getElementById('primaryColor').value;
+                const secondaryColor = document.getElementById('secondaryColor').value;
+                const useGradient = document.getElementById('gradient').checked;
+                const opacity = parseInt(document.getElementById('opacity').value) / 100;
+                
+                const numElements = Math.floor(density * 2);
+                
+                for (let i = 0; i < numElements; i++) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = opacity;
+                    
+                    const x = Math.random() * this.canvas.width;
+                    const y = Math.random() * this.canvas.height;
+                    const size = (20 + Math.random() * 60) * scale;
+                    
+                    this.ctx.translate(x, y);
+                    this.ctx.rotate((rotation + Math.random() * 360) * Math.PI / 180);
+                    
+                    if (useGradient) {
+                        const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                        gradient.addColorStop(0, primaryColor);
+                        gradient.addColorStop(1, secondaryColor);
+                        this.ctx.fillStyle = gradient;
+                    } else {
+                        this.ctx.fillStyle = primaryColor;
+                    }
+                    
+                    // Generate organic blob shape
+                    this.ctx.beginPath();
+                    const points = 8;
+                    for (let j = 0; j < points; j++) {
+                        const angle = (j / points) * Math.PI * 2;
+                        const radius = size * (0.5 + Math.random() * 0.5);
+                        const px = Math.cos(angle) * radius;
+                        const py = Math.sin(angle) * radius;
+                        
+                        if (j === 0) {
+                            this.ctx.moveTo(px, py);
+                        } else {
+                            // Create smooth curves
+                            const prevAngle = ((j - 1) / points) * Math.PI * 2;
+                            const prevRadius = size * (0.5 + Math.random() * 0.5);
+                            const cpx = Math.cos(prevAngle + 0.5) * prevRadius * 0.5;
+                            const cpy = Math.sin(prevAngle + 0.5) * prevRadius * 0.5;
+                            this.ctx.quadraticCurveTo(cpx, cpy, px, py);
+                        }
+                    }
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    this.ctx.restore();
+                }
+                
+                this.patterns.push({ type: 'organic', count: numElements });
+            }
+
+            generateDoodles(density, scale, rotation) {
+                const primaryColor = document.getElementById('primaryColor').value;
+                const secondaryColor = document.getElementById('secondaryColor').value;
+                const opacity = parseInt(document.getElementById('opacity').value) / 100;
+                
+                const numDoodles = Math.floor(density * 1.5);
+                
+                for (let i = 0; i < numDoodles; i++) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = opacity;
+                    
+                    const x = Math.random() * this.canvas.width;
+                    const y = Math.random() * this.canvas.height;
+                    const size = (15 + Math.random() * 30) * scale;
+                    
+                    this.ctx.translate(x, y);
+                    this.ctx.rotate((rotation + Math.random() * 360) * Math.PI / 180);
+                    
+                    // Random doodle type
+                    const doodleType = Math.floor(Math.random() * 5);
+                    this.ctx.strokeStyle = primaryColor;
+                    this.ctx.fillStyle = secondaryColor;
+                    this.ctx.lineWidth = 2;
+                    
+                    switch(doodleType) {
+                        case 0: // Spiral
+                            this.drawSpiral(0, 0, size);
+                            break;
+                        case 1: // Flower
+                            this.drawFlower(0, 0, size);
+                            break;
+                        case 2: // Star burst
+                            this.drawStarBurst(0, 0, size);
+                            break;
+                        case 3: // Squiggle
+                            this.drawSquiggle(0, 0, size);
+                            break;
+                        case 4: // Hearts
+                            this.drawHeart(0, 0, size);
+                            break;
+                    }
+                    
+                    this.ctx.restore();
+                }
+                
+                this.patterns.push({ type: 'doodles', count: numDoodles });
+            }
+
+            generateIcons(density, scale, rotation) {
+                const primaryColor = document.getElementById('primaryColor').value;
+                const secondaryColor = document.getElementById('secondaryColor').value;
+                const useGradient = document.getElementById('gradient').checked;
+                const opacity = parseInt(document.getElementById('opacity').value) / 100;
+                
+                const iconSize = 30 * scale;
+                const spacing = Math.max(iconSize * 2, this.canvas.width / (density / 15));
+                
+                const icons = ['star', 'heart', 'diamond', 'arrow', 'gear', 'leaf'];
+                let elementCount = 0;
+                
+                for (let x = iconSize; x < this.canvas.width; x += spacing) {
+                    for (let y = iconSize; y < this.canvas.height; y += spacing) {
+                        this.ctx.save();
+                        this.ctx.globalAlpha = opacity;
+                        this.ctx.translate(x, y);
+                        this.ctx.rotate((rotation * Math.PI) / 180);
+                        
+                        const iconType = icons[Math.floor(Math.random() * icons.length)];
+                        
+                        if (useGradient) {
+                            const gradient = this.ctx.createLinearGradient(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2);
+                            gradient.addColorStop(0, primaryColor);
+                            gradient.addColorStop(1, secondaryColor);
+                            this.ctx.fillStyle = gradient;
+                        } else {
+                            this.ctx.fillStyle = primaryColor;
+                        }
+                        
+                        this.drawIcon(iconType, 0, 0, iconSize);
+                        
+                        this.ctx.restore();
+                        elementCount++;
+                    }
+                }
+                
+                this.patterns.push({ type: 'icons', count: elementCount });
+            }
+
+            // Helper drawing methods
+            drawHexagon(x, y, size) {
+                this.ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i * Math.PI) / 3;
+                    const px = x + size * Math.cos(angle);
+                    const py = y + size * Math.sin(angle);
+                    if (i === 0) this.ctx.moveTo(px, py);
+                    else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath();
+            }
+
+            drawSpiral(x, y, size) {
+                this.ctx.beginPath();
+                let angle = 0;
+                let radius = 0;
+                this.ctx.moveTo(x, y);
+                
+                while (radius < size) {
+                    angle += 0.3;
+                    radius += 0.5;
+                    const px = x + radius * Math.cos(angle);
+                    const py = y + radius * Math.sin(angle);
+                    this.ctx.lineTo(px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawFlower(x, y, size) {
+                const petals = 6;
+                this.ctx.fillStyle = this.ctx.strokeStyle;
+                
+                for (let i = 0; i < petals; i++) {
+                    const angle = (i / petals) * Math.PI * 2;
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(
+                        x + Math.cos(angle) * size * 0.3,
+                        y + Math.sin(angle) * size * 0.3,
+                        size * 0.4, size * 0.2, angle, 0, Math.PI * 2
+                    );
+                    this.ctx.fill();
+                }
+                
+                // Center
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, size * 0.2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            drawStarBurst(x, y, size) {
+                const rays = 8;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y);
+                
+                for (let i = 0; i < rays; i++) {
+                    const angle = (i / rays) * Math.PI * 2;
+                    const endX = x + Math.cos(angle) * size;
+                    const endY = y + Math.sin(angle) * size;
+                    this.ctx.moveTo(x, y);
+                    this.ctx.lineTo(endX, endY);
+                }
+                this.ctx.stroke();
+            }
+
+            drawSquiggle(x, y, size) {
+                this.ctx.beginPath();
+                const points = 8;
+                let startX = x - size;
+                let startY = y;
+                this.ctx.moveTo(startX, startY);
+                
+                for (let i = 0; i < points; i++) {
+                    const px = x - size + (i / points) * size * 2;
+                    const py = y + Math.sin(i) * size * 0.5;
+                    const cpx = px - size * 0.2 + Math.random() * size * 0.4;
+                    const cpy = py + Math.random() * size * 0.4 - size * 0.2;
+                    this.ctx.quadraticCurveTo(cpx, cpy, px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawHeart(x, y, size) {
+                this.ctx.beginPath();
+                const topCurveHeight = size * 0.3;
+                this.ctx.moveTo(x, y + topCurveHeight);
+                
+                // Left curve
+                this.ctx.bezierCurveTo(
+                    x, y, 
+                    x - size * 0.5, y, 
+                    x - size * 0.5, y + topCurveHeight
+                );
+                this.ctx.bezierCurveTo(
+                    x - size * 0.5, y + size * 0.6, 
+                    x, y + size * 0.6, 
+                    x, y + size
+                );
+                
+                // Right curve
+                this.ctx.bezierCurveTo(
+                    x, y + size * 0.6, 
+                    x + size * 0.5, y + size * 0.6, 
+                    x + size * 0.5, y + topCurveHeight
+                );
+                this.ctx.bezierCurveTo(
+                    x + size * 0.5, y, 
+                    x, y, 
+                    x, y + topCurveHeight
+                );
+                
+                this.ctx.fill();
+            }
+
+            drawIcon(type, x, y, size) {
+                switch(type) {
+                    case 'star':
+                        this.drawStar(x, y, size);
+                        break;
+                    case 'heart':
+                        this.drawHeart(x, y, size * 0.8);
+                        break;
+                    case 'diamond':
+                        this.drawDiamond(x, y, size);
+                        break;
+                    case 'arrow':
+                        this.drawArrow(x, y, size);
+                        break;
+                    case 'gear':
+                        this.drawGear(x, y, size);
+                        break;
+                    case 'leaf':
+                        this.drawLeaf(x, y, size);
+                        break;
+                }
+            }
+
+            drawStar(x, y, size) {
+                const spikes = 5;
+                const outerRadius = size * 0.5;
+                const innerRadius = size * 0.2;
+                
+                this.ctx.beginPath();
+                for (let i = 0; i < spikes * 2; i++) {
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const angle = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2;
+                    const px = x + Math.cos(angle) * radius;
+                    const py = y + Math.sin(angle) * radius;
+                    
+                    if (i === 0) this.ctx.moveTo(px, py);
+                    else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawDiamond(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size * 0.5);
+                this.ctx.lineTo(x + size * 0.3, y);
+                this.ctx.lineTo(x, y + size * 0.5);
+                this.ctx.lineTo(x - size * 0.3, y);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawArrow(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x - size * 0.3, y - size * 0.2);
+                this.ctx.lineTo(x + size * 0.3, y);
+                this.ctx.lineTo(x - size * 0.3, y + size * 0.2);
+                this.ctx.lineTo(x - size * 0.1, y);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawGear(x, y, size) {
+                const teeth = 8;
+                const innerRadius = size * 0.3;
+                const outerRadius = size * 0.5;
+                
+                this.ctx.beginPath();
+                for (let i = 0; i < teeth * 4; i++) {
+                    const angle = (i / (teeth * 4)) * Math.PI * 2;
+                    const radius = i % 4 < 2 ? outerRadius : innerRadius;
+                    const px = x + Math.cos(angle) * radius;
+                    const py = y + Math.sin(angle) * radius;
+                    
+                    if (i === 0) this.ctx.moveTo(px, py);
+                    else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // Inner circle
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, size * 0.15, 0, Math.PI * 2);
+                this.ctx.fillStyle = this.ctx.canvas.style.backgroundColor || '#ffffff';
+                this.ctx.fill();
+            }
+
+            drawLeaf(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size * 0.5);
+                this.ctx.bezierCurveTo(
+                    x + size * 0.3, y - size * 0.3,
+                    x + size * 0.3, y + size * 0.3,
+                    x, y + size * 0.5
+                );
+                this.ctx.bezierCurveTo(
+                    x - size * 0.3, y + size * 0.3,
+                    x - size * 0.3, y - size * 0.3,
+                    x, y - size * 0.5
+                );
+                this.ctx.fill();
+                
+                // Leaf vein
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size * 0.5);
+                this.ctx.lineTo(x, y + size * 0.5);
+                this.ctx.strokeStyle = this.ctx.fillStyle;
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+            }
+
+            loadPreset(preset) {
+                const presets = {
+                    hexagons: {
+                        patternType: 'geometric',
+                        density: 30,
+                        scale: 1.2,
+                        rotation: 0,
+                        primaryColor: '#667eea',
+                        secondaryColor: '#764ba2',
+                        gradient: true,
+                        shadow: false,
+                        outline: true
+                    },
+                    circles: {
+                        patternType: 'geometric',
+                        density: 40,
+                        scale: 0.8,
+                        rotation: 0,
+                        primaryColor: '#43e97b',
+                        secondaryColor: '#38f9d7',
+                        gradient: true,
+                        shadow: true,
+                        outline: false
+                    },
+                    triangles: {
+                        patternType: 'geometric',
+                        density: 35,
+                        scale: 1.0,
+                        rotation: 30,
+                        primaryColor: '#fa709a',
+                        secondaryColor: '#fee140',
+                        gradient: true,
+                        shadow: false,
+                        outline: false
+                    },
+                    waves: {
+                        patternType: 'organic',
+                        density: 60,
+                        scale: 1.5,
+                        rotation: 0,
+                        primaryColor: '#43cbff',
+                        secondaryColor: '#9708cc',
+                        gradient: true,
+                        shadow: false,
+                        outline: false
+                    },
+                    flowers: {
+                        patternType: 'doodles',
+                        density: 50,
+                        scale: 1.2,
+                        rotation: 0,
+                        primaryColor: '#f093fb',
+                        secondaryColor: '#f5576c',
+                        gradient: false,
+                        shadow: true,
+                        outline: false
+                    },
+                    stars: {
+                        patternType: 'icons',
+                        density: 25,
+                        scale: 1.0,
+                        rotation: 15,
+                        primaryColor: '#fee140',
+                        secondaryColor: '#fa709a',
+                        gradient: true,
+                        shadow: true,
+                        outline: false
+                    }
+                };
+
+                const config = presets[preset];
+                if (!config) return;
+
+                // Update pattern type
+                document.querySelectorAll('.pattern-type').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.type === config.patternType) {
+                        btn.classList.add('active');
+                    }
+                });
+                this.currentPattern = config.patternType;
+
+                // Update controls
+                document.getElementById('density').value = config.density;
+                document.getElementById('densityValue').textContent = config.density;
+                document.getElementById('scale').value = config.scale;
+                document.getElementById('scaleValue').textContent = config.scale + 'x';
+                document.getElementById('rotation').value = config.rotation;
+                document.getElementById('rotationValue').textContent = config.rotation + '°';
+                document.getElementById('primaryColor').value = config.primaryColor;
+                document.getElementById('secondaryColor').value = config.secondaryColor;
+                document.getElementById('gradient').checked = config.gradient;
+                document.getElementById('shadow').checked = config.shadow;
+                document.getElementById('outline').checked = config.outline;
+
+                this.generatePattern();
+            }
+
+            randomizeSettings() {
+                const patterns = ['geometric', 'organic', 'doodles', 'icons'];
+                const colors = ['#667eea', '#764ba2', '#f093fb', '#43e97b', '#fa709a', '#fee140', '#43cbff', '#9708cc'];
+                
+                // Random pattern type
+                const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                document.querySelectorAll('.pattern-type').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.type === randomPattern) {
+                        btn.classList.add('active');
+                    }
+                });
+                this.currentPattern = randomPattern;
+
+                // Random values
+                const density = 20 + Math.floor(Math.random() * 60);
+                const scale = 0.5 + Math.random() * 2;
+                const rotation = Math.floor(Math.random() * 360);
+
+                document.getElementById('density').value = density;
+                document.getElementById('densityValue').textContent = density;
+                document.getElementById('scale').value = scale.toFixed(1);
+                document.getElementById('scaleValue').textContent = scale.toFixed(1) + 'x';
+                document.getElementById('rotation').value = rotation;
+                document.getElementById('rotationValue').textContent = rotation + '°';
+
+                // Random colors
+                document.getElementById('primaryColor').value = colors[Math.floor(Math.random() * colors.length)];
+                document.getElementById('secondaryColor').value = colors[Math.floor(Math.random() * colors.length)];
+
+                // Random checkboxes
+                document.getElementById('gradient').checked = Math.random() > 0.5;
+                document.getElementById('shadow').checked = Math.random() > 0.7;
+                document.getElementById('outline').checked = Math.random() > 0.6;
+
+                this.generatePattern();
+            }
+
+            updateStats() {
+                const totalElements = this.patterns.reduce((sum, pattern) => sum + pattern.count, 0);
+                document.getElementById('elementCount').textContent = totalElements;
+                
+                const canvasSize = this.canvas.width;
+                document.getElementById('patternSize').textContent = canvasSize + 'px';
+                
+                // Estimate file size (rough calculation)
+                const estimatedSize = Math.floor((canvasSize * canvasSize * 4) / 1024 / 3); // Rough compression estimate
+                document.getElementById('fileSize').textContent = '~' + estimatedSize + 'KB';
+            }
+
+            showLoading(show) {
+                const loading = document.getElementById('loading');
+                loading.style.display = show ? 'block' : 'none';
+            }
+
+            exportPNG() {
+                const link = document.createElement('a');
+                link.download = `pattern_${Date.now()}.png`;
+                link.href = this.canvas.toDataURL('image/png');
+                link.click();
+            }
+
+            exportSVG() {
+                // Create SVG version of the pattern
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', this.canvas.width);
+                svg.setAttribute('height', this.canvas.height);
+                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                
+                // Add background
+                const bgColor = document.getElementById('backgroundColor').value;
+                const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                background.setAttribute('width', '100%');
+                background.setAttribute('height', '100%');
+                background.setAttribute('fill', bgColor);
+                svg.appendChild(background);
+                
+                // Note: This is a simplified SVG export. A full implementation would 
+                // recreate all the canvas drawing operations as SVG elements.
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', '50%');
+                text.setAttribute('y', '50%');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                text.setAttribute('font-family', 'Arial, sans-serif');
+                text.setAttribute('font-size', '24');
+                text.setAttribute('fill', '#666');
+                text.textContent = 'SVG Export - Pattern Generated';
+                svg.appendChild(text);
+                
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.download = `pattern_${Date.now()}.svg`;
+                link.href = url;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new PatternGenerator();
+        });
+    </script>
+</body>
+</html>
