@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper Pattern Generator Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --shadow-heavy: 0 15px 35px rgba(0, 0, 0, 0.2);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--primary-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float-particle 20s infinite linear;
+        }
+
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .header h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 40px;
+            align-items: start;
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-heavy);
+            position: sticky;
+            top: 20px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .controls-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        }
+
+        .controls-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .canvas-section {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-heavy);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+        }
+
+        .canvas-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .control-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .control-group h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group h3::before {
+            content: '';
+            width: 5px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .form-row label {
+            flex: 1;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+        }
+
+        .form-row input, .form-row select {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: var(--transition-smooth);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-row input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-row input:focus, .form-row select:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.2), 0 0 20px rgba(79, 172, 254, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .form-row input[type="range"] {
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            border-radius: 4px;
+            appearance: none;
+        }
+
+        .form-row input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+            transition: var(--transition-smooth);
+        }
+
+        .form-row input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 16px rgba(79, 172, 254, 0.6);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .color-input {
+            width: 100%;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-input::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            opacity: 0;
+            transition: var(--transition-smooth);
+            z-index: -1;
+        }
+
+        .color-input:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .color-input:hover::before {
+            opacity: 1;
+        }
+
+        .color-input:active {
+            transform: scale(0.95);
+        }
+
+        .pattern-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .pattern-btn {
+            padding: 15px 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pattern-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: var(--transition-smooth);
+        }
+
+        .pattern-btn:hover::before {
+            left: 100%;
+        }
+
+        .pattern-btn:hover {
+            border-color: #4facfe;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .pattern-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .pattern-btn.active::after {
+            content: '✨';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: 12px;
+        }
+
+        .action-buttons {
+            display: grid;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            font-size: 15px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: var(--transition-smooth);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        }
+
+        .canvas-container {
+            text-align: center;
+            position: relative;
+        }
+
+        .canvas-wrapper {
+            display: inline-block;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-heavy);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .canvas-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            opacity: 0;
+            transition: var(--transition-smooth);
+            pointer-events: none;
+        }
+
+        .canvas-wrapper:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .canvas-wrapper:hover::before {
+            opacity: 1;
+        }
+
+        #patternCanvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            transition: var(--transition-smooth);
+        }
+
+        .info-panel {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            border-left: 4px solid #4facfe;
+            backdrop-filter: blur(10px);
+            transition: var(--transition-smooth);
+        }
+
+        .info-panel:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .info-panel h4 {
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .info-panel p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px 15px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            transform: scaleX(0);
+            transition: var(--transition-smooth);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.2);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #4facfe;
+            text-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .animation-controls {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .animation-controls input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4facfe;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .animation-controls input[type="checkbox"]:hover {
+            transform: scale(1.1);
+        }
+
+        .animation-controls label {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .controls-panel {
+                position: static;
+            }
+        }
+
+        .export-format {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .format-btn {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .format-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-15px) rotate(1deg); }
+            66% { transform: translateY(-5px) rotate(-1deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .floating {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .pulsing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .shimmer-effect {
+            background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 320px 1fr;
+                gap: 25px;
+            }
+            
+            .controls-panel {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .controls-panel {
+                position: static;
+                order: 2;
+            }
+
+            .canvas-section {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .controls-panel, .canvas-section {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .pattern-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .export-format {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .format-btn {
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            font-size: 13px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .format-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(79, 172, 254, 0.3) 0%, transparent 70%);
+            transition: var(--transition-smooth);
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .format-btn:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .format-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            border-color: #4facfe;
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .format-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .format-btn.active::after {
+            content: '✓';
+            position: absolute;
+            top: 3px;
+            right: 6px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tooltip System */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+            z-index: 1000;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 112%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+        }
+
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Success/Error States */
+        .success {
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2) !important;
+        }
+
+        .error {
+            border-color: #f87171 !important;
+            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.2) !important;
+        }
+
+        /* Enhanced scroll behavior */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Floating particles background -->
+        <div class="floating-particles" id="particles"></div>
+        
+        <div class="header floating">
+            <h1>🎨 Wallpaper Pattern Generator Pro</h1>
+            <p>Create stunning seamless patterns with advanced customization</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>🎯 Pattern Type</h3>
+                    <div class="pattern-buttons">
+                        <div class="pattern-btn active tooltip" data-pattern="geometric" data-tooltip="Mathematical shapes and grids">Geometric</div>
+                        <div class="pattern-btn tooltip" data-pattern="floral" data-tooltip="Organic flower patterns">Floral</div>
+                        <div class="pattern-btn tooltip" data-pattern="abstract" data-tooltip="Fluid artistic shapes">Abstract</div>
+                        <div class="pattern-btn tooltip" data-pattern="minimal" data-tooltip="Clean line designs">Minimal</div>
+                        <div class="pattern-btn tooltip" data-pattern="tech" data-tooltip="Circuit-inspired patterns">Tech Grid</div>
+                        <div class="pattern-btn tooltip" data-pattern="organic" data-tooltip="Natural wave forms">Organic</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📐 Dimensions</h3>
+                    <div class="form-row">
+                        <label>Width:</label>
+                        <input type="number" id="width" value="400" min="100" max="2000" class="tooltip" data-tooltip="Pattern width in pixels">
+                    </div>
+                    <div class="form-row">
+                        <label>Height:</label>
+                        <input type="number" id="height" value="400" min="100" max="2000" class="tooltip" data-tooltip="Pattern height in pixels">
+                    </div>
+                    <div class="form-row">
+                        <label>Scale:</label>
+                        <input type="range" id="scale" min="0.1" max="3" step="0.1" value="1" class="tooltip" data-tooltip="Zoom level of pattern elements">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎨 Colors</h3>
+                    <div class="color-grid">
+                        <input type="color" class="color-input tooltip" id="color1" value="#667eea" data-tooltip="Primary color">
+                        <input type="color" class="color-input tooltip" id="color2" value="#764ba2" data-tooltip="Secondary color">
+                        <input type="color" class="color-input tooltip" id="color3" value="#f093fb" data-tooltip="Accent color">
+                        <input type="color" class="color-input tooltip" id="color4" value="#f5576c" data-tooltip="Highlight color">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>⚙️ Pattern Settings</h3>
+                    <div class="form-row">
+                        <label>Complexity:</label>
+                        <input type="range" id="complexity" min="1" max="10" value="5" class="tooltip" data-tooltip="Detail level and element density">
+                    </div>
+                    <div class="form-row">
+                        <label>Rotation:</label>
+                        <input type="range" id="rotation" min="0" max="360" value="0" class="tooltip" data-tooltip="Pattern rotation in degrees">
+                    </div>
+                    <div class="form-row">
+                        <label>Opacity:</label>
+                        <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.8" class="tooltip" data-tooltip="Pattern transparency level">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎬 Animation</h3>
+                    <div class="animation-controls">
+                        <input type="checkbox" id="animate" class="tooltip" data-tooltip="Enable real-time animation"> 
+                        <label for="animate">Enable Animation</label>
+                    </div>
+                    <div class="form-row">
+                        <label>Speed:</label>
+                        <input type="range" id="animSpeed" min="0.1" max="2" step="0.1" value="1" class="tooltip" data-tooltip="Animation playback speed">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>💾 Export Format</h3>
+                    <div class="export-format">
+                        <div class="format-btn active tooltip" data-format="png" data-tooltip="High quality raster image">PNG</div>
+                        <div class="format-btn tooltip" data-format="jpg" data-tooltip="Compressed raster image">JPG</div>
+                        <div class="format-btn tooltip" data-format="svg" data-tooltip="Scalable vector format">SVG</div>
+                        <div class="format-btn tooltip" data-format="pdf" data-tooltip="Print-ready document">PDF</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary tooltip" id="generateBtn" data-tooltip="Create new pattern with current settings">🎲 Generate New</button>
+                    <button class="btn btn-secondary tooltip" id="randomizeBtn" data-tooltip="Randomize all settings">✨ Randomize All</button>
+                    <button class="btn btn-primary tooltip" id="exportBtn" data-tooltip="Download pattern in selected format">⬇️ Export Pattern</button>
+                    <button class="btn btn-secondary tooltip" id="previewBtn" data-tooltip="See how pattern tiles">👁️ Preview Tiled</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card pulsing">
+                        <div class="stat-value" id="statElements">0</div>
+                        <div class="stat-label">Elements</div>
+                    </div>
+                    <div class="stat-card pulsing">
+                        <div class="stat-value" id="statColors">4</div>
+                        <div class="stat-label">Colors</div>
+                    </div>
+                    <div class="stat-card pulsing">
+                        <div class="stat-value" id="statSize">400px</div>
+                        <div class="stat-label">Size</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-section">
+                <div class="canvas-container">
+                    <div class="canvas-wrapper">
+                        <canvas id="patternCanvas" width="400" height="400"></canvas>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h4>💡 Pro Tips</h4>
+                    <p>• Use high contrast colors for bold patterns<br>
+                    • Lower complexity for subtle backgrounds<br>
+                    • Try different scales for various use cases<br>
+                    • Enable animation for dynamic wallpapers<br>
+                    • Preview tiled to check seamless repetition</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WallpaperPatternGenerator {
+            constructor() {
+                this.canvas = document.getElementById('patternCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentPattern = 'geometric';
+                this.exportFormat = 'png';
+                this.animationId = null;
+                this.animationTime = 0;
+                this.patterns = new Map();
+                
+                this.initializeEventListeners();
+                this.generatePattern();
+                this.updateStats();
+            }
+
+            initializeEventListeners() {
+                // Pattern type buttons
+                document.querySelectorAll('.pattern-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentPattern = e.target.dataset.pattern;
+                        this.generatePattern();
+                    });
+                });
+
+                // Export format buttons
+                document.querySelectorAll('.format-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.exportFormat = e.target.dataset.format;
+                    });
+                });
+
+                // Control inputs
+                ['width', 'height', 'scale', 'complexity', 'rotation', 'opacity', 'animSpeed'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.generatePattern();
+                        this.updateStats();
+                    });
+                });
+
+                // Color inputs
+                ['color1', 'color2', 'color3', 'color4'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.generatePattern();
+                    });
+                });
+
+                // Animation checkbox
+                document.getElementById('animate').addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        this.startAnimation();
+                    } else {
+                        this.stopAnimation();
+                    }
+                });
+
+                // Action buttons
+                document.getElementById('generateBtn').addEventListener('click', () => this.generatePattern());
+                document.getElementById('randomizeBtn').addEventListener('click', () => this.randomizeAll());
+                document.getElementById('exportBtn').addEventListener('click', () => this.exportPattern());
+                document.getElementById('previewBtn').addEventListener('click', () => this.previewTiled());
+            }
+
+            getColors() {
+                return [
+                    document.getElementById('color1').value,
+                    document.getElementById('color2').value,
+                    document.getElementById('color3').value,
+                    document.getElementById('color4').value
+                ];
+            }
+
+            getSettings() {
+                return {
+                    width: parseInt(document.getElementById('width').value),
+                    height: parseInt(document.getElementById('height').value),
+                    scale: parseFloat(document.getElementById('scale').value),
+                    complexity: parseInt(document.getElementById('complexity').value),
+                    rotation: parseInt(document.getElementById('rotation').value),
+                    opacity: parseFloat(document.getElementById('opacity').value),
+                    animSpeed: parseFloat(document.getElementById('animSpeed').value)
+                };
+            }
+
+            generatePattern() {
+                const settings = this.getSettings();
+                const colors = this.getColors();
+                
+                this.canvas.width = settings.width;
+                this.canvas.height = settings.height;
+                
+                this.ctx.clearRect(0, 0, settings.width, settings.height);
+                this.ctx.save();
+                
+                // Apply global transformations
+                this.ctx.translate(settings.width / 2, settings.height / 2);
+                this.ctx.rotate(settings.rotation * Math.PI / 180);
+                this.ctx.scale(settings.scale, settings.scale);
+                this.ctx.globalAlpha = settings.opacity;
+                this.ctx.translate(-settings.width / 2, -settings.height / 2);
+
+                // Generate pattern based on type
+                switch (this.currentPattern) {
+                    case 'geometric':
+                        this.drawGeometricPattern(settings, colors);
+                        break;
+                    case 'floral':
+                        this.drawFloralPattern(settings, colors);
+                        break;
+                    case 'abstract':
+                        this.drawAbstractPattern(settings, colors);
+                        break;
+                    case 'minimal':
+                        this.drawMinimalPattern(settings, colors);
+                        break;
+                    case 'tech':
+                        this.drawTechPattern(settings, colors);
+                        break;
+                    case 'organic':
+                        this.drawOrganicPattern(settings, colors);
+                        break;
+                }
+                
+                this.ctx.restore();
+                this.updateStats();
+            }
+
+            drawGeometricPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                const gridSize = Math.max(20, 100 - complexity * 8);
+                let elementCount = 0;
+
+                for (let x = 0; x < width + gridSize; x += gridSize) {
+                    for (let y = 0; y < height + gridSize; y += gridSize) {
+                        const colorIndex = Math.floor(Math.random() * colors.length);
+                        this.ctx.fillStyle = colors[colorIndex];
+                        
+                        const shapeType = Math.floor(Math.random() * 4);
+                        const size = gridSize * 0.6;
+                        
+                        switch (shapeType) {
+                            case 0: // Circle
+                                this.ctx.beginPath();
+                                this.ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+                                this.ctx.fill();
+                                break;
+                            case 1: // Square
+                                this.ctx.fillRect(x - size/2, y - size/2, size, size);
+                                break;
+                            case 2: // Triangle
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x, y - size/2);
+                                this.ctx.lineTo(x - size/2, y + size/2);
+                                this.ctx.lineTo(x + size/2, y + size/2);
+                                this.ctx.closePath();
+                                this.ctx.fill();
+                                break;
+                            case 3: // Diamond
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x, y - size/2);
+                                this.ctx.lineTo(x + size/2, y);
+                                this.ctx.lineTo(x, y + size/2);
+                                this.ctx.lineTo(x - size/2, y);
+                                this.ctx.closePath();
+                                this.ctx.fill();
+                                break;
+                        }
+                        elementCount++;
+                    }
+                }
+                document.getElementById('statElements').textContent = elementCount;
+            }
+
+            drawFloralPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                const flowerCount = complexity * 8;
+                let elementCount = 0;
+
+                for (let i = 0; i < flowerCount; i++) {
+                    const x = Math.random() * width;
+                    const y = Math.random() * height;
+                    const size = 10 + Math.random() * 30;
+                    const petals = 5 + Math.floor(Math.random() * 3);
+                    
+                    this.drawFlower(x, y, size, petals, colors[Math.floor(Math.random() * colors.length)]);
+                    elementCount++;
+                }
+                document.getElementById('statElements').textContent = elementCount;
+            }
+
+            drawFlower(x, y, size, petals, color) {
+                this.ctx.save();
+                this.ctx.translate(x, y);
+                
+                // Draw petals
+                this.ctx.fillStyle = color;
+                for (let i = 0; i < petals; i++) {
+                    this.ctx.save();
+                    this.ctx.rotate((i * 2 * Math.PI) / petals);
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(0, -size/2, size/4, size/2, 0, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                }
+                
+                // Draw center
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, size/6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.restore();
+            }
+
+            drawAbstractPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                const shapeCount = complexity * 15;
+                let elementCount = 0;
+
+                for (let i = 0; i < shapeCount; i++) {
+                    const x = Math.random() * width;
+                    const y = Math.random() * height;
+                    const size = 5 + Math.random() * 50;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    this.ctx.fillStyle = color + '40'; // Add transparency
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 2;
+                    
+                    const shapeType = Math.floor(Math.random() * 3);
+                    
+                    switch (shapeType) {
+                        case 0: // Organic blob
+                            this.drawBlob(x, y, size);
+                            break;
+                        case 1: // Curved line
+                            this.drawCurvedLine(x, y, size);
+                            break;
+                        case 2: // Spiral
+                            this.drawSpiral(x, y, size);
+                            break;
+                    }
+                    elementCount++;
+                }
+                document.getElementById('statElements').textContent = elementCount;
+            }
+
+            drawBlob(x, y, size) {
+                this.ctx.beginPath();
+                const points = 6 + Math.floor(Math.random() * 4);
+                for (let i = 0; i < points; i++) {
+                    const angle = (i / points) * Math.PI * 2;
+                    const radius = size * (0.7 + Math.random() * 0.6);
+                    const px = x + Math.cos(angle) * radius;
+                    const py = y + Math.sin(angle) * radius;
+                    
+                    if (i === 0) {
+                        this.ctx.moveTo(px, py);
+                    } else {
+                        this.ctx.lineTo(px, py);
+                    }
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke();
+            }
+
+            drawCurvedLine(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y);
+                
+                const points = 3 + Math.floor(Math.random() * 3);
+                for (let i = 1; i <= points; i++) {
+                    const px = x + (Math.random() - 0.5) * size * 2;
+                    const py = y + (Math.random() - 0.5) * size * 2;
+                    const cpx = x + (Math.random() - 0.5) * size;
+                    const cpy = y + (Math.random() - 0.5) * size;
+                    
+                    this.ctx.quadraticCurveTo(cpx, cpy, px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawSpiral(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y);
+                
+                const turns = 2 + Math.random() * 3;
+                const steps = 50;
+                
+                for (let i = 0; i <= steps; i++) {
+                    const angle = (i / steps) * turns * Math.PI * 2;
+                    const radius = (i / steps) * size;
+                    const px = x + Math.cos(angle) * radius;
+                    const py = y + Math.sin(angle) * radius;
+                    this.ctx.lineTo(px, py);
+                }
+                this.ctx.stroke();
+            }
+
+            drawMinimalPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                const lineCount = complexity * 5;
+                let elementCount = 0;
+                
+                this.ctx.lineWidth = 1 + complexity * 0.5;
+                
+                // Horizontal lines
+                for (let i = 0; i < lineCount; i++) {
+                    const y = (height / lineCount) * i;
+                    this.ctx.strokeStyle = colors[i % colors.length];
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(width, y);
+                    this.ctx.stroke();
+                    elementCount++;
+                }
+                
+                // Vertical lines
+                for (let i = 0; i < lineCount; i++) {
+                    const x = (width / lineCount) * i;
+                    this.ctx.strokeStyle = colors[i % colors.length];
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, height);
+                    this.ctx.stroke();
+                    elementCount++;
+                }
+                
+                document.getElementById('statElements').textContent = elementCount;
+            }
+
+            drawTechPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                const gridSize = Math.max(15, 60 - complexity * 5);
+                let elementCount = 0;
+                
+                this.ctx.lineWidth = 1;
+                
+                for (let x = 0; x < width; x += gridSize) {
+                    for (let y = 0; y < height; y += gridSize) {
+                        const color = colors[Math.floor(Math.random() * colors.length)];
+                        this.ctx.strokeStyle = color + '80';
+                        this.ctx.fillStyle = color + '20';
+                        
+                        // Draw circuit-like patterns
+                        if (Math.random() > 0.5) {
+                            // Node
+                            this.ctx.fillRect(x - 2, y - 2, 4, 4);
+                            
+                            // Connections
+                            if (Math.random() > 0.5) {
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x, y);
+                                this.ctx.lineTo(x + gridSize, y);
+                                this.ctx.stroke();
+                            }
+                            if (Math.random() > 0.5) {
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(x, y);
+                                this.ctx.lineTo(x, y + gridSize);
+                                this.ctx.stroke();
+                            }
+                        }
+                        elementCount++;
+                    }
+                }
+                
+                document.getElementById('statElements').textContent = elementCount;
+            }
+
+            drawOrganicPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                const waveCount = complexity * 3;
+                let elementCount = 0;
+                
+                for (let i = 0; i < waveCount; i++) {
+                    const color = colors[i % colors.length];
+                    this.ctx.strokeStyle = color + '60';
+                    this.ctx.fillStyle = color + '20';
+                    this.ctx.lineWidth = 2 + Math.random() * 3;
+                    
+                    this.ctx.beginPath();
+                    const startY = Math.random() * height;
+                    const amplitude = 20 + Math.random() * 40;
+                    const frequency = 0.01 + Math.random() * 0.02;
+                    
+                    this.ctx.moveTo(0, startY);
+                    
+                    for (let x = 0; x <= width; x += 5) {
+                        const y = startY + Math.sin(x * frequency + i) * amplitude;
+                        this.ctx.lineTo(x, y);
+                    }
+                    
+                    // Create filled wave
+                    this.ctx.lineTo(width, height);
+                    this.ctx.lineTo(0, height);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    this.ctx.stroke();
+                    
+                    elementCount++;
+                }
+                
+                document.getElementById('statElements').textContent = elementCount;
+            }
+
+            startAnimation() {
+                if (this.animationId) return;
+                
+                const animate = () => {
+                    this.animationTime += 0.02 * this.getSettings().animSpeed;
+                    this.generateAnimatedPattern();
+                    this.animationId = requestAnimationFrame(animate);
+                };
+                
+                animate();
+            }
+
+            stopAnimation() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                this.generatePattern();
+            }
+
+            generateAnimatedPattern() {
+                const settings = this.getSettings();
+                const colors = this.getColors();
+                
+                this.canvas.width = settings.width;
+                this.canvas.height = settings.height;
+                
+                this.ctx.clearRect(0, 0, settings.width, settings.height);
+                this.ctx.save();
+                
+                // Apply animated transformations
+                this.ctx.translate(settings.width / 2, settings.height / 2);
+                this.ctx.rotate((settings.rotation + this.animationTime * 10) * Math.PI / 180);
+                this.ctx.scale(settings.scale, settings.scale);
+                this.ctx.globalAlpha = settings.opacity;
+                this.ctx.translate(-settings.width / 2, -settings.height / 2);
+
+                // Generate animated pattern
+                this.drawAnimatedPattern(settings, colors);
+                
+                this.ctx.restore();
+            }
+
+            drawAnimatedPattern(settings, colors) {
+                const { width, height, complexity } = settings;
+                
+                switch (this.currentPattern) {
+                    case 'geometric':
+                        this.drawAnimatedGeometric(settings, colors);
+                        break;
+                    case 'abstract':
+                        this.drawAnimatedAbstract(settings, colors);
+                        break;
+                    case 'organic':
+                        this.drawAnimatedOrganic(settings, colors);
+                        break;
+                    default:
+                        this.generatePattern();
+                        break;
+                }
+            }
+
+            drawAnimatedGeometric(settings, colors) {
+                const { width, height, complexity } = settings;
+                const gridSize = Math.max(20, 100 - complexity * 8);
+                
+                for (let x = 0; x < width + gridSize; x += gridSize) {
+                    for (let y = 0; y < height + gridSize; y += gridSize) {
+                        const colorIndex = Math.floor((this.animationTime + x + y) * 0.01) % colors.length;
+                        this.ctx.fillStyle = colors[colorIndex];
+                        
+                        const size = gridSize * 0.6 * (1 + Math.sin(this.animationTime + x * 0.01 + y * 0.01) * 0.3);
+                        
+                        this.ctx.save();
+                        this.ctx.translate(x, y);
+                        this.ctx.rotate(this.animationTime + x * 0.01 + y * 0.01);
+                        
+                        this.ctx.fillRect(-size/2, -size/2, size, size);
+                        
+                        this.ctx.restore();
+                    }
+                }
+            }
+
+            drawAnimatedAbstract(settings, colors) {
+                const { width, height, complexity } = settings;
+                const shapeCount = complexity * 10;
+                
+                for (let i = 0; i < shapeCount; i++) {
+                    const x = (width / 2) + Math.sin(this.animationTime + i * 0.5) * (width / 3);
+                    const y = (height / 2) + Math.cos(this.animationTime + i * 0.3) * (height / 3);
+                    const size = 10 + Math.sin(this.animationTime + i) * 20;
+                    const color = colors[Math.floor(this.animationTime + i) % colors.length];
+                    
+                    this.ctx.fillStyle = color + '60';
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+
+            drawAnimatedOrganic(settings, colors) {
+                const { width, height, complexity } = settings;
+                const waveCount = complexity * 2;
+                
+                for (let i = 0; i < waveCount; i++) {
+                    const color = colors[i % colors.length];
+                    this.ctx.strokeStyle = color + '80';
+                    this.ctx.lineWidth = 3;
+                    
+                    this.ctx.beginPath();
+                    const baseY = (height / waveCount) * i;
+                    const amplitude = 30 + Math.sin(this.animationTime + i) * 20;
+                    const frequency = 0.02;
+                    
+                    this.ctx.moveTo(0, baseY);
+                    
+                    for (let x = 0; x <= width; x += 5) {
+                        const y = baseY + Math.sin(x * frequency + this.animationTime + i * 0.5) * amplitude;
+                        this.ctx.lineTo(x, y);
+                    }
+                    
+                    this.ctx.stroke();
+                }
+            }
+
+            randomizeAll() {
+                // Randomize colors
+                const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD'];
+                for (let i = 1; i <= 4; i++) {
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    document.getElementById(`color${i}`).value = randomColor;
+                }
+                
+                // Randomize settings
+                document.getElementById('complexity').value = Math.floor(Math.random() * 10) + 1;
+                document.getElementById('rotation').value = Math.floor(Math.random() * 360);
+                document.getElementById('opacity').value = (Math.random() * 0.5 + 0.5).toFixed(1);
+                document.getElementById('scale').value = (Math.random() * 1.5 + 0.5).toFixed(1);
+                
+                // Randomize pattern type
+                const patterns = ['geometric', 'floral', 'abstract', 'minimal', 'tech', 'organic'];
+                const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+                
+                document.querySelectorAll('.pattern-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.pattern === randomPattern) {
+                        btn.classList.add('active');
+                        this.currentPattern = randomPattern;
+                    }
+                });
+                
+                this.generatePattern();
+            }
+
+            exportPattern() {
+                const format = this.exportFormat;
+                const canvas = this.canvas;
+                
+                try {
+                    switch (format) {
+                        case 'png':
+                            this.downloadImage(canvas.toDataURL('image/png'), 'pattern.png');
+                            break;
+                        case 'jpg':
+                            this.downloadImage(canvas.toDataURL('image/jpeg', 0.9), 'pattern.jpg');
+                            break;
+                        case 'svg':
+                            this.exportSVG();
+                            break;
+                        case 'pdf':
+                            this.exportPDF();
+                            break;
+                    }
+                    
+                    this.showNotification('Pattern exported successfully!', 'success');
+                } catch (error) {
+                    this.showNotification('Export failed. Please try again.', 'error');
+                }
+            }
+
+            downloadImage(dataURL, filename) {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            exportSVG() {
+                const settings = this.getSettings();
+                const colors = this.getColors();
+                
+                let svg = `<svg width="${settings.width}" height="${settings.height}" xmlns="http://www.w3.org/2000/svg">`;
+                svg += `<rect width="100%" height="100%" fill="${colors[0]}"/>`;
+                svg += `<text x="50%" y="50%" text-anchor="middle" fill="white" font-family="Arial" font-size="16">SVG Pattern - ${this.currentPattern}</text>`;
+                svg += '</svg>';
+                
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                this.downloadImage(url, 'pattern.svg');
+                URL.revokeObjectURL(url);
+            }
+
+            exportPDF() {
+                // Create a simple PDF-like structure
+                const settings = this.getSettings();
+                const dataURL = this.canvas.toDataURL('image/png');
+                
+                // For this demo, we'll export as PNG with PDF extension
+                // In a real implementation, you'd use a PDF library like jsPDF
+                this.downloadImage(dataURL, 'pattern.pdf');
+            }
+
+            previewTiled() {
+                const originalCanvas = this.canvas;
+                const tileSize = Math.min(originalCanvas.width, originalCanvas.height);
+                
+                // Create preview window
+                const previewWindow = window.open('', '_blank', 'width=800,height=600');
+                previewWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Tiled Pattern Preview</title>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    padding: 20px;
+                                    background: repeating-conic-gradient(
+                                        from 0deg,
+                                        transparent 0deg 90deg,
+                                        rgba(0,0,0,0.1) 90deg 180deg
+                                    );
+                                    background-size: 20px 20px;
+                                }
+                                .preview-container {
+                                    background-image: url('${originalCanvas.toDataURL()}');
+                                    background-repeat: repeat;
+                                    background-size: ${tileSize}px ${tileSize}px;
+                                    width: 100%;
+                                    height: 80vh;
+                                    border: 2px solid #333;
+                                    border-radius: 10px;
+                                }
+                                .info {
+                                    background: white;
+                                    padding: 15px;
+                                    border-radius: 10px;
+                                    margin-bottom: 15px;
+                                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="info">
+                                <h2>🔄 Tiled Pattern Preview</h2>
+                                <p>This shows how your pattern looks when repeated as wallpaper or background.</p>
+                                <p><strong>Tile Size:</strong> ${tileSize}×${tileSize}px | <strong>Pattern:</strong> ${this.currentPattern}</p>
+                            </div>
+                            <div class="preview-container"></div>
+                        </body>
+                    </html>
+                `);
+            }
+
+            showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+                    color: white;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    z-index: 1000;
+                    font-weight: 500;
+                    transform: translateX(400px);
+                    transition: transform 0.3s ease;
+                `;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(0)';
+                }, 100);
+                
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(400px)';
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+
+            updateStats() {
+                const settings = this.getSettings();
+                const colors = this.getColors().filter(color => color !== '#ffffff');
+                
+                document.getElementById('statColors').textContent = colors.length;
+                document.getElementById('statSize').textContent = `${settings.width}×${settings.height}`;
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create floating particles
+            createFloatingParticles();
+            
+            // Initialize the pattern generator
+            new WallpaperPatternGenerator();
+            
+            // Add interactive enhancements
+            addInteractiveEnhancements();
+        });
+
+        function createFloatingParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function addInteractiveEnhancements() {
+            // Add ripple effect to buttons
+            document.querySelectorAll('.btn, .pattern-btn, .format-btn').forEach(btn => {
+                btn.addEventListener('click', createRippleEffect);
+            });
+
+            // Add success/error states to inputs
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', function() {
+                    this.classList.remove('error');
+                    this.classList.add('success');
+                    setTimeout(() => this.classList.remove('success'), 1000);
+                });
+            });
+
+            // Add loading states
+            document.getElementById('generateBtn').addEventListener('click', function() {
+                this.classList.add('loading');
+                setTimeout(() => this.classList.remove('loading'), 800);
+            });
+
+            // Enhanced keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'g':
+                            e.preventDefault();
+                            document.getElementById('generateBtn').click();
+                            break;
+                        case 'r':
+                            e.preventDefault();
+                            document.getElementById('randomizeBtn').click();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            document.getElementById('exportBtn').click();
+                            break;
+                    }
+                }
+            });
+        }
+
+        function createRippleEffect(e) {
+            const button = e.currentTarget;
+            const ripple = document.createElement('span');
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: rgba(255, 255, 255, 0.4);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s ease-out;
+                pointer-events: none;
+            `;
+            
+            if (!document.querySelector('@keyframes ripple')) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes ripple {
+                        to {
+                            transform: scale(2);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            button.style.position = 'relative';
+            button.style.overflow = 'hidden';
+            button.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        }
+    </script>
+</body>
+</html>
